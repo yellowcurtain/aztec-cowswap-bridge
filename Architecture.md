@@ -13,10 +13,18 @@ The constrains of this bridge includes:
 
 ## Workflow
 
+<p align="center">
+   <img src="https://github.com/yellowcurtain/aztec-cowswap-bridge/blob/main/images/bridge.png" alt="Bridge Workflow"/>
+</p>
+
 ### Place order
 
-With current Cowswap api, it is needed to get fee amount first and then place order. A possible solution could be using a relay server. 
+With current Cowswap api, it is needed to get fee amount first and then place order. 
+
+A possible solution could be using a relay server. 
+
 Because Cowswap will support place order without fee in future, it could be a good idea to use a relay server which accept order without fee amount. And the relay server could get fee amount and then place order. 
+
 By doing so, it is good for keeping CowswapBridge and Chainlink unchanged when Cowswap update its api.
 
 
@@ -36,6 +44,5 @@ Same as a reentrancy attack, after receiving token from Cowswap smart contract, 
     }
 ```
 
-![Bridge Architecture](https://github.com/yellowcurtain/aztec-cowswap-bridge/blob/main/images/bridge.png)
 
 
