@@ -6,7 +6,14 @@ Users who have shielded assets on Aztec can construct a zero-knowledge proof ins
 
 Rollup providers batch multiple L2 transaction intents on the Aztec Network together in a rollup. The rollup contract then makes aggregate transaction against L1 DeFi contracts and returns the funds pro-rata to the users on L2.
 
- 
+
+## Architecture
+
+<p align="center">
+   <img src="https://github.com/yellowcurtain/aztec-cowswap-bridge/blob/main/images/bridgeV2.png" alt="Bridge Workflow"/>
+</p>
+
+
 ### Async flow explainer
 
 If a Defi Bridge interaction is asynchronous, it must be finalised at a later date once the DeFi interaction has completed.
@@ -31,8 +38,4 @@ This function checks to see if an async interaction is ready to settle. It shoul
 
 This function will be called from the Azte Rollup contract. The Aztec rollup contract will check that it received the correct amount of ETH and Tokens specified by the return values, and trigger the settlement step on Aztec.
 
-#### TODO
 
-- cowswap onchain access, cowswap.sol
-- deploy script, deploy_cowswap.ts
-- test script, cowswap_bridge.test.ts
