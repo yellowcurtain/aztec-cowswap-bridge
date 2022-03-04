@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright 2020 Spilsbury Holdings Ltd
 
-pragma solidity >=0.6.10 <0.8.0;
+pragma solidity >=0.6.10 <0.8.10;
 pragma experimental ABIEncoderV2;
 
 library Types {
@@ -18,11 +17,19 @@ library Types {
         AztecAssetType assetType;
     }
 
-    enum OrderStatus {
-        PRESIGNATUREPENDING,
-        OPEN,
-        FULFILLED,
-        CANCELLED,
-        EXPIRED
+    struct CowswapOrder {
+        uint256 sellAmount; //pack variables
+        uint256 buyAmount;
+        uint256 feeAmount;
+        address sellToken;
+        address buyToken;
+        uint32 validTo;
+        bytes orderUid; //bytes is used in GPv2Settlement
     }
+
+    struct Interaction {
+        bytes orderUid;
+        uint256 sellAmount;
+    }
+
 }
