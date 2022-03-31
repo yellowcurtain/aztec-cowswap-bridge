@@ -40,13 +40,6 @@ contract CowswapBridge is IDefiBridge {
   /// @dev Interactions
   mapping(uint256 => Types.Interaction) interactions;
 
-  /// @dev A offchain notifier monitors Trade event and find matching orderUid
-  ///        event Trade(address indexed owner,
-  ///          IERC20 sellToken,IERC20 buyToken,uint256 sellAmount,
-  ///          uint256 buyAmount,uint256 feeAmount,bytes orderUid);
-  /// Get executed trade result and set sellAmount for each orderUid
-  mapping(bytes => uint256) public outputAmounts;
-
   /// @dev Empty receive function
   /// Allow bridge contract to receive Ether
   receive() external payable {}
@@ -57,6 +50,7 @@ contract CowswapBridge is IDefiBridge {
     rollupProcessor = _rollupProcessor;
     vaultRelayer = _vaultRelayer;
   }
+
 
   // @dev This function is called from the RollupProcessor.sol contract via the DefiBridgeProxy. It receives the aggreagte sum of all users funds for the input assets.
   // @param AztecAsset inputAssetA a struct detailing the first input asset, this will always be set
@@ -98,8 +92,9 @@ contract CowswapBridge is IDefiBridge {
     // place order on cowswap
     Types.CowswapOrder memory order = placeOrder(inputAssetA.erc20Address, outputAssetA.erc20Address, inputValue);
     require(bytes(order.orderUid).length > 0, "CowswapBridge: PLACE_ORDER_FAILED");
-    interactions[interactionNonce] =  Types.Interaction(order.orderUid, order.sellAmount);
-    
+
+    interactions[interactionNonce] =  Types.Interaction(order.sellAmount, order.buyAmount, order.buyToken, order.orderUid);
+
     // check interaction can be finalised
     for (uint256 i = 0; i < interactionNonces.length; i++) {
       Types.Interaction memory interaction = interactions[interactionNonces[i]];
@@ -112,6 +107,7 @@ contract CowswapBridge is IDefiBridge {
 
     return (0,0,true);
   }
+
 
   // @dev This function is called to check status of Interaction of specific interactionNonce.
   function canFinalise(
@@ -136,7 +132,7 @@ contract CowswapBridge is IDefiBridge {
   // @return uint256 outputValueB optional return value of output asset B
   // @dev this function should have a modifier on it to ensure it can only be called by the Rollup Contract
   function finalise(
-    Types.AztecAsset calldata outputAssetA,
+    Types.AztecAsset calldata,
     Types.AztecAsset calldata,
     Types.AztecAsset calldata,
     Types.AztecAsset calldata,
@@ -146,13 +142,10 @@ contract CowswapBridge is IDefiBridge {
   {
     require(msg.sender == rollupProcessor, "CowswapBridge: INVALID_CALLER");
     
-     Types.Interaction memory interaction = interactions[interactionNonce];
-
-    // A notifier will monitor settled trades, and save output amount for orderUid.
-    outputValueA = outputAmounts[interaction.orderUid];
-
+    Types.Interaction memory interaction = interactions[interactionNonce];
+    
     // approve the transfer of token back to the rollup contract
-    IERC20(outputAssetA.erc20Address).approve(rollupProcessor, outputValueA);
+    IERC20(interaction.buyToken).approve(rollupProcessor, interaction.buyAmount);
 
     //delete finilised interaction
     delete interactions[interactionNonce];
@@ -161,6 +154,7 @@ contract CowswapBridge is IDefiBridge {
     return (outputValueA,0);
   }
   
+
   /// @dev Place order on cowswap
   /// 
   /// Find a match presigned match order and call setPreSignature to activate order. 
@@ -169,11 +163,10 @@ contract CowswapBridge is IDefiBridge {
   /// @param sellToken address of Token to sell
   /// @param buyToken address of Token to buy
   /// @param sellAmount amount of Token to sell
-
   function placeOrder(address sellToken, address buyToken, uint256 sellAmount) 
     private returns (Types.CowswapOrder memory)
   {
-    // find a match order from presigned orders and presign
+    // find a match order from presigned orders and setPreSignature to true
     for (uint256 i = 0; i < presignedOrders.length; i++) {
       Types.CowswapOrder memory order = presignedOrders[i];
       if (sellToken == order.sellToken && buyToken == order.buyToken && sellAmount == order.sellAmount) {
@@ -183,6 +176,7 @@ contract CowswapBridge is IDefiBridge {
       } 
     }
   }
+
 
   /// @dev Check if sellAmount of order filled
   /// 
@@ -203,6 +197,7 @@ contract CowswapBridge is IDefiBridge {
       return isFilled;
   }
 
+
   /// @dev Remove order from presignedOrders array 
   /// 
   /// Should remove if presigned order get signed and activated
@@ -215,6 +210,7 @@ contract CowswapBridge is IDefiBridge {
     }
     presignedOrders.pop();
   }
+
 
   /// @dev Remove interactionNonce from interactionNonces array 
   /// 

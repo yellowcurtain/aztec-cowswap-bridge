@@ -28,8 +28,10 @@ library Types {
     }
 
     struct Interaction {
-        bytes orderUid;
-        uint256 sellAmount;
+        uint256 sellAmount; //pack variables
+        uint256 buyAmount;
+        address buyToken;
+        bytes orderUid; //bytes is used in GPv2Settlement
     }
 
 }
