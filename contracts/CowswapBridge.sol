@@ -93,15 +93,19 @@ contract CowswapBridge is IDefiBridge {
     Types.CowswapOrder memory order = placeOrder(inputAssetA.erc20Address, outputAssetA.erc20Address, inputValue);
     require(bytes(order.orderUid).length > 0, "CowswapBridge: PLACE_ORDER_FAILED");
 
-    interactions[interactionNonce] =  Types.Interaction(order.sellAmount, order.buyAmount, order.buyToken, order.orderUid);
+    interactions[interactionNonce] =  Types.Interaction(order.sellAmount, order.buyAmount, order.buyToken, order.validTo, order.orderUid);
 
     // check interaction can be finalised
     for (uint256 i = 0; i < interactionNonces.length; i++) {
       Types.Interaction memory interaction = interactions[interactionNonces[i]];
       bool isFilled = isOrderFilled(interaction.orderUid, interaction.sellAmount);
+      // Inform the rollup contract to finalise
       if (isFilled == true) {
-        // Inform the rollup contract to finalise
         IRollupProcessor(rollupProcessor).processAsyncDeFiInteraction(interactionNonces[i]);
+      }
+      // Inform the rollup contract order of interaction expired
+      if (interaction.validTo < block.timestamp) {
+        IRollupProcessor(rollupProcessor).processExpiredAsyncDeFiInteraction(interactionNonces[i]);
       }
     }
 

@@ -23,7 +23,7 @@ library Types {
         uint256 feeAmount;
         address sellToken;
         address buyToken;
-        uint32 validTo;
+        uint256 validTo;
         bytes orderUid; //bytes is used in GPv2Settlement
     }
 
@@ -31,6 +31,7 @@ library Types {
         uint256 sellAmount; //pack variables
         uint256 buyAmount;
         address buyToken;
+        uint256 validTo;
         bytes orderUid; //bytes is used in GPv2Settlement
     }
 

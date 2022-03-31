@@ -6,4 +6,6 @@ pragma experimental ABIEncoderV2;
 interface IRollupProcessor {
 
   function processAsyncDeFiInteraction(uint256 interactionNonce) external;
+  function processExpiredAsyncDeFiInteraction(uint256 interactionNonce) external;
+
 }
